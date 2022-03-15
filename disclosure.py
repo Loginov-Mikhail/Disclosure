@@ -82,8 +82,8 @@ def save_report(id, cookies):
     f = open('tmp', 'wb')
     f.write(resp.data)
     f.close()
-    filenName = resp.headers['Content-Disposition'].split('=')[1]
-    os.rename('tmp', filenName)
+    fileName = resp.headers['Content-Disposition'].split('=')[1].strip('"')
+    os.rename('tmp', fileName)
     return 0
 
 
