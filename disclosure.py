@@ -64,7 +64,10 @@ def read_new_data(id, typeId, cookies):
             str3 = str2[0]
             break
     # f.close()
-    return int(str3)
+    try:
+        return int(str3)
+    except UnboundLocalError:
+        return 0
 
 
 # *****************************************************************************
@@ -116,7 +119,7 @@ print('START')
 siteCookie = get_cookie()
 for i in range(len(data)):
     newData = read_new_data(data.loc[i, 'id'], data.loc[i, 'type'], siteCookie)
-    if data.loc[i, 'last'] != newData:
+    if data.loc[i, 'last'] != newData and newData != 0:
         print(data.loc[i, 'ticker'] + ';' + str(newData))
         save_report(newData, siteCookie)
 print('STOP')
