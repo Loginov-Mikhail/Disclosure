@@ -73,7 +73,7 @@ def read_new_data(id, typeId, cookies):
 # *****************************************************************************
 #                  Функция сохранения отчета на диск
 # *****************************************************************************
-def save_report(id, cookies):
+def save_report(id, cookies, directory):
     url = 'https://www.e-disclosure.ru/portal/FileLoad.ashx?Fileid=' + str(id)
     http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED',
                                ca_certs=certifi.where(),
@@ -86,7 +86,7 @@ def save_report(id, cookies):
     f.write(resp.data)
     f.close()
     fileName = resp.headers['Content-Disposition'].split('=')[1].strip('"')
-    os.rename('tmp', fileName)
+    os.rename('tmp', directory + fileName)
     return 0
 
 
@@ -120,6 +120,9 @@ siteCookie = get_cookie()
 for i in range(len(data)):
     newData = read_new_data(data.loc[i, 'id'], data.loc[i, 'type'], siteCookie)
     if data.loc[i, 'last'] != newData and newData != 0:
-        print(data.loc[i, 'ticker'] + ';' + str(newData))
-        save_report(newData, siteCookie)
+        dir = data.loc[i, 'ticker'] + ';' + str(newData)
+        print(dir)
+        os.mkdir(dir)
+        dir = os.getcwd() + '/' + dir + '/'
+        save_report(newData, siteCookie, dir)
 print('STOP')
