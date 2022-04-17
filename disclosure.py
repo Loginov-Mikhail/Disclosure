@@ -24,6 +24,7 @@ import os
 import urllib3
 import certifi
 import pandas as pd
+import openpyxl
 
 
 # *****************************************************************************
@@ -112,13 +113,13 @@ def read_input(excelFile, sheetName):
     return data
 
 
-# ******************************************************************************
+# *****************************************************************************
 #            Функция чтения настроек из конфигурационного файла
 #
 # Результат: param[0] - путь к файлу Excel с результатами анализа отчетности по
 #                       МСФО;
 #            param[1] - имя листа с данными.
-# ******************************************************************************
+# *****************************************************************************
 def read_configuration():
     f = open('input.txt', 'r', encoding='utf-8')
     param = []
@@ -129,10 +130,27 @@ def read_configuration():
 
 
 # *****************************************************************************
+# Функция изменения числового значения номера последней ссылки на странице
+# финансовой отчетности указанного эмитента
+#
+# Результат: номер следующей строки на указанном листе в файле Excel
+# *****************************************************************************
+def change_cell(excelFile, sheetName, ticker, lastId, initialRow):
+    workSheet = excelFile[sheetName]
+    i = initialRow
+    while workSheet.cell(row=i, column=2).value != ticker:
+        i = i + 1
+    workSheet.cell(row=i, column=18).value = lastId
+    return i + 1
+
+
+# *****************************************************************************
 #                       Текст основной программы
 # *****************************************************************************
-excelFile, sheetName = read_configuration()
-data = read_input(excelFile, sheetName)
+excelFileName, sheetName = read_configuration()
+data = read_input(excelFileName, sheetName)
+excelFile = openpyxl.load_workbook(excelFileName)
+n = 2
 print('START')
 siteCookie = get_cookie()
 for i in range(len(data)):
@@ -143,4 +161,7 @@ for i in range(len(data)):
         os.mkdir(dir)
         dir = os.getcwd() + '/' + dir + '/'
         save_report(newData, siteCookie, dir)
+        n = change_cell(excelFile, sheetName, data.loc[i, 'ticker'], newData,
+                        n)
 print('STOP')
+excelFile.save(excelFileName)
